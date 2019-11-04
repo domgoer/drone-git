@@ -17,7 +17,7 @@ set -x
 
 git pull ${FLAGS} origin +refs/heads/${BRANCH}:
 
-if [ "master" -ne "${BRANCH}" ]; then
+if [[ "master" != "${BRANCH}" ]]; then
   git checkout -b ${BRANCH}
 fi
 

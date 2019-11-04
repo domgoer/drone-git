@@ -6,7 +6,13 @@ package posix
 const Clone = `#!/bin/sh
 
 if [[ ! -z "${DRONE_WORKSPACE}" ]]; then
+  mkdir -p ${DRONE_WORKSPACE}
 	cd ${DRONE_WORKSPACE}
+fi
+
+if [[ ! -z "${PLUGIN_WORKSPACE}" ]]; then
+  mkdir -p ${PLUGIN_WORKSPACE}
+	cd ${PLUGIN_WORKSPACE}
 fi
 
 # if the netrc enviornment variables exist, write
@@ -55,12 +61,15 @@ export GIT_COMMITTER_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}
 # TODO we should ultimately look at the ref, since
 # we need something compatible with deployment events.
 
-CLONE_TYPE=${$PLUGIN_BUILD_EVENT:-$DRONE_BUILD_EVENT}
+CLONE_TYPE=${PLUGIN_BUILD_EVENT:-$DRONE_BUILD_EVENT}
 case ${PLUGIN_COMMIT_REF:-$DRONE_COMMIT_REF} in
   refs/tags/* ) CLONE_TYPE=tag ;;
 esac
 
 case $CLONE_TYPE in
+pull)
+  clone-pull
+  ;;
 pull_request)
 	clone-pull-request
 	;;
@@ -76,11 +85,15 @@ esac`
 const CloneCommit = `#!/bin/sh
 BRANCH=${PLUGIN_COMMIT_BRANCH:-$DRONE_COMMIT_BRANCH}
 REMOTE_URL=${PLUGIN_REMOTE_URL:-$DRONE_REMOTE_URL}
-SHA=${PLUGIN_COMMIT_SHA:-$DRONE_COMMIT_SHA}
+SHA=${PLUGIN_COMMIT_SHA}
 FLAGS=""
 
 if [[ ! -z "${PLUGIN_DEPTH}" ]]; then
 	FLAGS="--depth=${PLUGIN_DEPTH}"
+fi
+
+if [[ -z "${PLUGIN_REMOTE_URL}" ]]; then
+  SHA=${DRONE_COMMIT_SHA}
 fi
 
 if [ ! -d .git ]; then
@@ -98,12 +111,16 @@ git checkout ${SHA} -b ${BRANCH}`
 const ClonePullRequest = `#!/bin/sh
 BRANCH=${PLUGIN_COMMIT_BRANCH:-$DRONE_COMMIT_BRANCH}
 REMOTE_URL=${PLUGIN_REMOTE_URL:-$DRONE_REMOTE_URL}
-SHA=${PLUGIN_COMMIT_SHA:-$DRONE_COMMIT_SHA}
+SHA=${PLUGIN_COMMIT_SHA}
 REF=${PLUGIN_COMMIT_REF:-$DRONE_COMMIT_REF}
 
 FLAGS=""
 if [[ ! -z "${PLUGIN_DEPTH}" ]]; then
 	FLAGS="--depth=${PLUGIN_DEPTH}"
+fi
+
+if [[ -z "${PLUGIN_REMOTE_URL}" ]]; then
+  SHA=${DRONE_COMMIT_SHA}
 fi
 
 if [ ! -d .git ]; then
@@ -124,12 +141,16 @@ git merge ${SHA}`
 const CloneTag = `#!/bin/sh
 BRANCH=${PLUGIN_COMMIT_BRANCH:-$DRONE_COMMIT_BRANCH}
 REMOTE_URL=${PLUGIN_REMOTE_URL:-$DRONE_REMOTE_URL}
-SHA=${PLUGIN_COMMIT_SHA:-$DRONE_COMMIT_SHA}
+SHA=${PLUGIN_COMMIT_SHA}
 REF=${PLUGIN_COMMIT_REF:-$DRONE_COMMIT_REF}
 
 FLAGS=""
 if [[ ! -z "${PLUGIN_DEPTH}" ]]; then
 	FLAGS="--depth=${PLUGIN_DEPTH}"
+fi
+
+if [[ -z "${PLUGIN_REMOTE_URL}" ]]; then
+  SHA=${DRONE_COMMIT_SHA}
 fi
 
 if [ ! -d .git ]; then
