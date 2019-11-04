@@ -62,6 +62,9 @@ case ${PLUGIN_COMMIT_REF:-$DRONE_COMMIT_REF} in
 esac
 
 case $CLONE_TYPE in
+pull)
+  clone-pull
+  ;;
 pull_request)
 	clone-pull-request
 	;;

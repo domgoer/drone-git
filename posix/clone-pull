@@ -1,0 +1,23 @@
+#!/bin/sh
+BRANCH=${PLUGIN_COMMIT_BRANCH:-$DRONE_COMMIT_BRANCH}
+REMOTE_URL=${PLUGIN_REMOTE_URL:-$DRONE_REMOTE_URL}
+
+FLAGS=""
+if [[ ! -z "${PLUGIN_DEPTH}" ]]; then
+	FLAGS="--depth=${PLUGIN_DEPTH}"
+fi
+
+if [ ! -d .git ]; then
+	git init
+	git remote add origin ${REMOTE_URL}
+fi
+
+set -e
+set -x
+
+git pull ${FLAGS} origin +refs/heads/${BRANCH}:
+
+if [ "master" -ne "${BRANCH}" ]; then
+  git checkout -b ${BRANCH}
+fi
+
