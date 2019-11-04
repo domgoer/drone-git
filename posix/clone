@@ -1,7 +1,13 @@
 #!/bin/sh
 
 if [[ ! -z "${DRONE_WORKSPACE}" ]]; then
+  mkdir -p ${DRONE_WORKSPACE}
 	cd ${DRONE_WORKSPACE}
+fi
+
+if [[ ! -z "${PLUGIN_WORKSPACE}" ]]; then
+  mkdir -p ${PLUGIN_WORKSPACE}
+	cd ${PLUGIN_WORKSPACE}
 fi
 
 # if the netrc enviornment variables exist, write
