@@ -50,7 +50,7 @@ export GIT_COMMITTER_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}
 # TODO we should ultimately look at the ref, since
 # we need something compatible with deployment events.
 
-CLONE_TYPE=${$PLUGIN_BUILD_EVENT:-$DRONE_BUILD_EVENT}
+CLONE_TYPE=${PLUGIN_BUILD_EVENT:-$DRONE_BUILD_EVENT}
 case ${PLUGIN_COMMIT_REF:-$DRONE_COMMIT_REF} in
   refs/tags/* ) CLONE_TYPE=tag ;;
 esac
