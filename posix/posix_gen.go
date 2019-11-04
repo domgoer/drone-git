@@ -55,8 +55,8 @@ export GIT_COMMITTER_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}
 # TODO we should ultimately look at the ref, since
 # we need something compatible with deployment events.
 
-CLONE_TYPE=$DRONE_BUILD_EVENT
-case $DRONE_COMMIT_REF in
+CLONE_TYPE=${$PLUGIN_BUILD_EVENT:-$DRONE_BUILD_EVENT}
+case ${PLUGIN_COMMIT_REF:-$DRONE_COMMIT_REF} in
   refs/tags/* ) CLONE_TYPE=tag ;;
 esac
 
@@ -75,26 +75,33 @@ esac
 
 // Contents of clone-commit
 const CloneCommit = `#!/bin/sh
-
+BRANCH=${PLUGIN_COMMIT_BRANCH:-$DRONE_COMMIT_BRANCH}
+REMOTE_URL=${PLUGIN_REMOTE_URL:-$DRONE_REMOTE_URL}
+SHA=${PLUGIN_COMMIT_SHA:-$DRONE_COMMIT_SHA}
 FLAGS=""
+
 if [[ ! -z "${PLUGIN_DEPTH}" ]]; then
 	FLAGS="--depth=${PLUGIN_DEPTH}"
 fi
 
 if [ ! -d .git ]; then
 	git init
-	git remote add origin ${DRONE_REMOTE_URL}
+	git remote add origin ${REMOTE_URL}
 fi
 
 set -e
 set -x
 
-git fetch ${FLAGS} origin +refs/heads/${DRONE_COMMIT_BRANCH}:
-git checkout ${DRONE_COMMIT_SHA} -b ${DRONE_COMMIT_BRANCH}
+git fetch ${FLAGS} origin +refs/heads/${BRANCH}:
+git checkout ${SHA} -b ${BRANCH}
 `
 
 // Contents of clone-pull-request
 const ClonePullRequest = `#!/bin/sh
+BRANCH=${PLUGIN_COMMIT_BRANCH:-$DRONE_COMMIT_BRANCH}
+REMOTE_URL=${PLUGIN_REMOTE_URL:-$DRONE_REMOTE_URL}
+SHA=${PLUGIN_COMMIT_SHA:-$DRONE_COMMIT_SHA}
+REF=${PLUGIN_COMMIT_REF:-$DRONE_COMMIT_REF}
 
 FLAGS=""
 if [[ ! -z "${PLUGIN_DEPTH}" ]]; then
@@ -103,21 +110,23 @@ fi
 
 if [ ! -d .git ]; then
 	git init
-	git remote add origin ${DRONE_REMOTE_URL}
+	git remote add origin ${REMOTE_URL}
 fi
 
 set -e
 set -x
 
-git fetch ${FLAGS} origin +refs/heads/${DRONE_COMMIT_BRANCH}:
-git checkout ${DRONE_COMMIT_BRANCH}
+git fetch ${FLAGS} origin +refs/heads/${BRANCH}:
+git checkout ${BRANCH}
 
-git fetch origin ${DRONE_COMMIT_REF}:
-git merge ${DRONE_COMMIT_SHA}
+git fetch origin ${REF}:
+git merge ${SHA}
 `
 
 // Contents of clone-tag
 const CloneTag = `#!/bin/sh
+REMOTE_URL=${PLUGIN_REMOTE_URL:-$DRONE_REMOTE_URL}
+TAG=${PLUGIN_TAG:-$DRONE_TAG}
 
 FLAGS=""
 if [[ ! -z "${PLUGIN_DEPTH}" ]]; then
@@ -126,13 +135,13 @@ fi
 
 if [ ! -d .git ]; then
 	git init
-	git remote add origin ${DRONE_REMOTE_URL}
+	git remote add origin ${REMOTE_URL}
 fi
 
 set -e
 set -x
 
-git fetch ${FLAGS} origin +refs/tags/${DRONE_TAG}:
+git fetch ${FLAGS} origin +refs/tags/${TAG}:
 git checkout -qf FETCH_HEAD
 `
 
