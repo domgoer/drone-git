@@ -1,4 +1,8 @@
 #!/bin/sh
+BRANCH=${PLUGIN_COMMIT_BRANCH:-$DRONE_COMMIT_BRANCH}
+REMOTE_URL=${PLUGIN_REMOTE_URL:-$DRONE_REMOTE_URL}
+SHA=${PLUGIN_COMMIT_SHA:-$DRONE_COMMIT_SHA}
+REF=${PLUGIN_COMMIT_REF:-$DRONE_COMMIT_REF}
 
 FLAGS=""
 if [[ ! -z "${PLUGIN_DEPTH}" ]]; then
@@ -7,11 +11,14 @@ fi
 
 if [ ! -d .git ]; then
 	git init
-	git remote add origin ${DRONE_REMOTE_URL}
+	git remote add origin ${REMOTE_URL}
 fi
 
 set -e
 set -x
 
-git fetch ${FLAGS} origin +refs/tags/${DRONE_TAG}:
-git checkout -qf FETCH_HEAD
+git fetch ${FLAGS} origin +refs/heads/${BRANCH}:
+git checkout ${BRANCH}
+
+git fetch origin ${REF}:
+git merge ${SHA}

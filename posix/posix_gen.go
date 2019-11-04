@@ -70,8 +70,7 @@ tag)
 *)
 	clone-commit
 	;;
-esac
-`
+esac`
 
 // Contents of clone-commit
 const CloneCommit = `#!/bin/sh
@@ -93,8 +92,7 @@ set -e
 set -x
 
 git fetch ${FLAGS} origin +refs/heads/${BRANCH}:
-git checkout ${SHA} -b ${BRANCH}
-`
+git checkout ${SHA} -b ${BRANCH}`
 
 // Contents of clone-pull-request
 const ClonePullRequest = `#!/bin/sh
@@ -120,13 +118,14 @@ git fetch ${FLAGS} origin +refs/heads/${BRANCH}:
 git checkout ${BRANCH}
 
 git fetch origin ${REF}:
-git merge ${SHA}
-`
+git merge ${SHA}`
 
 // Contents of clone-tag
 const CloneTag = `#!/bin/sh
+BRANCH=${PLUGIN_COMMIT_BRANCH:-$DRONE_COMMIT_BRANCH}
 REMOTE_URL=${PLUGIN_REMOTE_URL:-$DRONE_REMOTE_URL}
-TAG=${PLUGIN_TAG:-$DRONE_TAG}
+SHA=${PLUGIN_COMMIT_SHA:-$DRONE_COMMIT_SHA}
+REF=${PLUGIN_COMMIT_REF:-$DRONE_COMMIT_REF}
 
 FLAGS=""
 if [[ ! -z "${PLUGIN_DEPTH}" ]]; then
@@ -141,7 +140,9 @@ fi
 set -e
 set -x
 
-git fetch ${FLAGS} origin +refs/tags/${TAG}:
-git checkout -qf FETCH_HEAD
-`
+git fetch ${FLAGS} origin +refs/heads/${BRANCH}:
+git checkout ${BRANCH}
+
+git fetch origin ${REF}:
+git merge ${SHA}`
 
