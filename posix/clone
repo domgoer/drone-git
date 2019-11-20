@@ -56,10 +56,23 @@ export GIT_COMMITTER_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}
 # TODO we should ultimately look at the ref, since
 # we need something compatible with deployment events.
 
-CLONE_TYPE=${PLUGIN_BUILD_EVENT:-$DRONE_BUILD_EVENT}
-case ${PLUGIN_COMMIT_REF:-$DRONE_COMMIT_REF} in
+CLONE_TYPE=$DRONE_BUILD_EVENT
+case ${DRONE_COMMIT_REF} in
   refs/tags/* ) CLONE_TYPE=tag ;;
+  refs/pull/* ) CLONE_TYPE=pull_request ;;
+  refs/pull-request/* ) CLONE_TYPE=pull_request ;;
+  refs/merge-requests/* ) CLONE_TYPE=pull_request ;;
 esac
+
+if [[ ! -z "${PLUGIN_BUILD_EVENT}" ]]; then
+  CLONE_TYPE=${PLUGIN_BUILD_EVENT}
+  case ${PLUGIN_COMMIT_REF} in
+    refs/tags/* ) CLONE_TYPE=tag ;;
+    refs/pull/* ) CLONE_TYPE=pull_request ;;
+    refs/pull-request/* ) CLONE_TYPE=pull_request ;;
+    refs/merge-requests/* ) CLONE_TYPE=pull_request ;;
+  esac
+fi
 
 case $CLONE_TYPE in
 pull)
